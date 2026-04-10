@@ -1,34 +1,68 @@
-#define RTCORE64_IOC_READ_PORT  0x80002048
-#define RTCORE64_IOC_WRITE_PORT 0x8000204C
-#define RTCORE64_IOC_READ_MEM   0x80002040
-#define RTCORE64_IOC_WRITE_MEM  0x80002044
+#pragma once
+#define RTCORE64_IOC_READ_PORT          0x80002008
+#define RTCORE64_IOC_WRITE_PORT         0x8000200C
+#define RTCORE64_IOC_READ_PORT_WORD     0x80002010
+#define RTCORE64_IOC_WRITE_PORT_WORD    0x80002014
+#define RTCORE64_IOC_READ_PORT_DWORD    0x80002018
+#define RTCORE64_IOC_WRITE_PORT_DWORD   0x8000201C
+#define RTCORE64_IOC_READ_MSR           0x80002030
+#define RTCORE64_IOC_WRITE_MSR          0x80002034
+#define RTCORE64_IOC_READ_MEM           0x80002048
+#define RTCORE64_IOC_WRITE_MEM          0x8000204C
+#define RTCORE64_IOC_READ_PCI           0x80002050
+#define RTCORE64_IOC_WRITE_PCI          0x80002054
+
 #pragma pack(push, 1)
-struct RTCORE64_PCI_IO {
-    uint32_t Bus;      // Шина (обычно 0)
-    uint32_t Device;   // Устройство
-    uint32_t Function; // Функция
-    uint32_t Offset;   // Смещение (0x04 для Command Register)
-    uint32_t Data;     // Данные для записи
-    uint32_t Size;     // Размер (2 для Command Register)
-};
 
 struct RTCORE64_PORT_IO {
-    uint32_t Address;
-    uint32_t Data;
-    uint32_t Size;
+    uint32_t Address = 0;
+    uint32_t Data=0;
+    uint32_t Size=0;
+};
+
+struct RTCORE64_MSR_IO {
+    uint32_t Register=0;
+    uint32_t ValueHigh=0;
+    uint32_t ValueLow=0;
 };
 
 struct RTCORE64_MEM_IO {
-    uint64_t Pad0;
-    uint64_t Address;
-    uint32_t Pad1;
-    uint32_t Data;
-    uint32_t Size;
-    uint32_t Pad2;
+    uint64_t Pad0=0;
+    uint64_t Address=0;
+    uint32_t Pad1=0;
+    uint32_t Data=0;
+    uint32_t Size=0;
+    uint32_t Pad2=0;
 };
+
+struct RTCORE64_PCI_IO {
+    uint32_t Bus=0;
+    uint32_t Device=0;
+    uint32_t Function=0;
+    uint32_t Offset=0;
+    uint32_t Data=0;
+    uint32_t Size=0;
+};
+
 #pragma pack(pop)
+#include <windows.h>
+
+namespace RTDriver {
+    inline HANDLE Open() {
+        return CreateFileA(
+            "\\\\.\\RTCore64",
+            GENERIC_READ | GENERIC_WRITE,
+            0,
+            nullptr,
+            OPEN_EXISTING,
+            0,
+            nullptr
+        );
+    }
+}
 
 
+unsigned int driver_sys_len = 40688;
 unsigned char driver_sys[] = {
   0x4d, 0x5a, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00,
   0xff, 0xff, 0x00, 0x00, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -3422,4 +3456,4 @@ unsigned char driver_sys[] = {
   0x83, 0x68, 0xb4, 0x1b, 0x89, 0x6a, 0xee, 0xb3, 0x60, 0x76, 0xcd, 0xfe,
   0x34, 0xa9, 0x2c, 0x59, 0xa7, 0x00, 0x00, 0x00
 };
-unsigned int driver_sys_len = 40688;
+
